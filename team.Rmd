@@ -11,6 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r}
-
-
+acc <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/fars2017/accident.csv", stringsAsFactors = FALSE)
+str(acc)
+person <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/fars2017/person.csv", stringsAsFactors = FALSE)
+str(person)
 ```
