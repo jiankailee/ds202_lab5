@@ -11,8 +11,32 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r}
+library(ggplot2)
+library(dplyr)
 acc <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/fars2017/accident.csv", stringsAsFactors = FALSE)
 str(acc)
 person <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/fars2017/person.csv", stringsAsFactors = FALSE)
-str(person)
+
+#part 1
+#1
+
+acc %>%ggplot(aes(x=DAY_WEEK))+geom_histogram()+xlab("Day of Week")+ylab("number of accidents")
+```
+Accidents occurred more often in the first, six and seven day of week which are Monday, Saturday and Sunday. As we can see from the graph, the second, third and fourth are less accident than on the weekend.
+
+```{r}
+#2
+acc%>%ggplot(aes(x=HOUR))+geom_histogram()+xlim(0,24)
+```
+From the histogram, we can see the most accidents happened between 17 and 21 which are 5 pm to 9pm. People tend to drive home from work or go out for dinner.
+```{r}
+temp<-acc%>%filter(DRUNK_DR>=1)
+length(temp)
+```
+The number of accidents with at least one drunk driver are 52.
+
+## part 2
+```{r}
+person_sub<-person%>%filter(PER_TYP==1)
+person_sub
 ```
