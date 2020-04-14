@@ -1,6 +1,6 @@
 ---
-title: "team"
-author: "Jian Kai Lee;jiankailee"
+title: "Lab5 Team"
+author: "Jian Kai Lee;jiankailee / Nick Matthews;nickmatthews713"
 date: "4/12/2020"
 output: html_document
 ---
@@ -9,34 +9,51 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
-```{r}
+### Loading in files  
+```{r warning=FALSE, message=FALSE}
 library(ggplot2)
 library(dplyr)
 acc <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/fars2017/accident.csv", stringsAsFactors = FALSE)
-str(acc)
 person <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/fars2017/person.csv", stringsAsFactors = FALSE)
 
-#part 1
-#1
+```
 
+### Part 1: Accident Data
+
+#### Problem 1
+```{r message=FALSE}
 acc %>%ggplot(aes(x=DAY_WEEK))+geom_histogram()+xlab("Day of Week")+ylab("number of accidents")
 ```
+
+##### Description:  
 Accidents occurred more often in the first, six and seven day of week which are Monday, Saturday and Sunday. As we can see from the graph, the second, third and fourth are less accident than on the weekend.
 
-```{r}
-#2
+#### Problem 2
+```{r warning=FALSE, message=FALSE}
 acc%>%ggplot(aes(x=HOUR))+geom_histogram()+xlim(0,24)
 ```
+
+##### Description:  
 From the histogram, we can see the most accidents happened between 17 and 21 which are 5 pm to 9pm. People tend to drive home from work or go out for dinner.
+
+#### Problem 3
 ```{r}
 temp<-acc%>%filter(DRUNK_DR>=1)
 length(temp)
 ```
+
+##### Description:  
 The number of accidents with at least one drunk driver are 52.
 
-## part 2
+### part 2: Connecting Data  
+#### Problem 1
 ```{r}
 person_sub<-person%>%filter(PER_TYP==1)
-person_sub
+```
+
+#### Problem 2
+```{r}
+
+
+
 ```
