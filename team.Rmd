@@ -13,6 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r warning=FALSE, message=FALSE}
 library(ggplot2)
 library(dplyr)
+library(maps)
+library(mapproj)
+library(tidyr)
 acc <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/fars2017/accident.csv", stringsAsFactors = FALSE)
 person <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/fars2017/person.csv", stringsAsFactors = FALSE)
 
@@ -46,14 +49,101 @@ length(temp)
 The number of accidents with at least one drunk driver are 52.
 
 ### part 2: Connecting Data  
-#### Problem 1
+#### Problem 4
 ```{r}
 person_sub<-person%>%filter(PER_TYP==1)
 ```
 
-#### Problem 2
+##### Description:  
+when "PER_TYP" = 1, it refers to the person driving the motor vehicle
+
+#### Problem 5
 ```{r}
-
-
-
+joined <- inner_join(person_sub, acc, by=c("ST_CASE","DAY","MONTH","HOUR","MINUTE","STATE","VE_FORMS","COUNTY"))
 ```
+
+##### Description:  
+I assume we are trying to join together the data and try to match each person to the accident, so I made sure to join along many details down to the minute of when the crash happened.
+
+#### Problem 6
+```{r}
+joined$SEX <- as.factor(joined$SEX)
+levels(joined$SEX) <- c("Male","Female","Not Reported","Unknown")
+
+joined$DAY_WEEK <- as.factor(joined$DAY_WEEK)
+levels(joined$DAY_WEEK) <- c("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday")
+
+joined %>%
+  group_by(DAY_WEEK, HOUR, SEX) %>%
+  summarise(count = n()) %>%
+  filter(HOUR < 25) %>%
+  ggplot(aes(x=HOUR, y=count, fill=SEX)) + geom_bar(stat="identity") + facet_wrap(~DAY_WEEK) +
+  ylab("Number of Crashes") + xlab("Hour of Day") + ggtitle("Number of Crashes for Each Day of the Week")
+```
+
+##### Description:  
+Here is the amount of accidents for every hour for each day of the week, also displaying the gender by color. I factored the columns SEX and DAY_WEEK to make the graph more readable. I had to do a filter(HOUR < 25) because there is a row in the dataset where the HOUR is 100. This didn't make any sense, so I removed it.
+
+### Part 3: Connecting Data and Make Maps  
+#### Problem 7/8  
+```{r warning=FALSE}
+countys = map_data('county')
+states = map_data('state')
+GLC = readxl::read_xlsx('counties.xlsx')
+GLC$`County Name` = tolower(GLC$`County Name`)
+GLC$`State Name` = tolower(GLC$`State Name`)
+
+countyCodes <- unique(GLC %>% select(`County Name`,`County Code`))
+
+# summarise the accident date to get number of crashes per county
+countyCases <- acc %>%
+  group_by(COUNTY) %>% summarise(crashes = n())
+
+# join together data to geocode and then use the polynames to get longitude and latitude from counties
+countyData <- countyCases %>%
+  inner_join(countyCodes %>% mutate('County Code' = as.numeric(countyCodes$'County Code')), 
+             by=c(COUNTY='County Code'))  %>%
+  inner_join(countys, by=c(`County Name` = 'subregion'))
+
+# plot the states map along with all the counties on it, coloring the counties according to the number of crashes
+countys %>%
+  ggplot(aes(x=long, y=lat)) + geom_path(aes(group = group)) + coord_map() +
+  geom_polygon(data = countyData, aes(x=long, y=lat, group=group, fill=crashes),
+             size=0.05) +
+  xlim(c(-125,-65)) + ylim(c(20,50))
+```
+
+#### Problem 9
+```{r}
+summerAcc <- acc %>% filter(MONTH < 4 | MONTH > 11) # Winter
+winterAcc <- acc %>% filter(MONTH < 9 | MONTH > 4) #Summer
+
+GLC$'State Code' = as.numeric(GLC$'State Code')
+stateCodes <- unique(GLC %>% select(`State Name`,`State Code`))
+
+winterAcc %>%
+  group_by(STATE) %>%
+  summarise(crashes = n()) %>%
+  inner_join(stateCodes, by=c(STATE="State Code")) %>%
+  inner_join(states, by=c(`State Name`="region")) %>%
+  ggplot(aes(x=long,y=lat)) +
+  geom_polygon(aes(group=group, fill = crashes)) +
+  ggtitle("Crashes by State During the Winter") +
+  scale_fill_gradientn(limits=c(0,3500), 
+                       colours=c("navyblue", "darkmagenta", "darkorange1"))
+
+summerAcc %>%
+  group_by(STATE) %>%
+  summarise(crashes = n()) %>%
+  inner_join(stateCodes, by=c(STATE="State Code")) %>%
+  inner_join(states, by=c(`State Name`="region")) %>%
+  ggplot(aes(x=long,y=lat)) +
+  geom_polygon(aes(group=group, fill = crashes)) +
+  ggtitle("Crashes by State During the Summer") +
+  scale_fill_gradientn(limits=c(0,3500), 
+                       colours=c("navyblue", "darkmagenta", "darkorange1"))
+  
+```
+
+##### Description:  
+It appears that there are more crashes in just about every state during the winter(Especially for the midwest). This is because as the temp gets colder, roads freeze and cars slip easier, leading to more crashes.
