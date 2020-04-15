@@ -25,7 +25,8 @@ person <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/mas
 
 #### Problem 1
 ```{r message=FALSE}
-acc %>%ggplot(aes(x=DAY_WEEK))+geom_histogram()+xlab("Day of Week")+ylab("number of accidents")
+acc %>%ggplot(aes(x=DAY_WEEK))+geom_histogram()+xlab("Day of Week")+ylab("number of accidents") +
+  ggtitle("Accidents Per Day of the Week")
 ```
 
 ##### Description:  
