@@ -1,0 +1,72 @@
+---
+title: "individual"
+author: "Jian Kai Lee;jiankailee"
+date: "4/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Loading in files  
+```{r warning=FALSE, message=FALSE}
+library(ggplot2)
+library(dplyr)
+acc <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/fars2017/accident.csv", stringsAsFactors = FALSE)
+person <- read.csv("https://raw.githubusercontent.com/xdaiISU/ds202materials/master/hwlabs/fars2017/person.csv", stringsAsFactors = FALSE)
+
+```
+
+### Part 1: Accident Data
+
+#### Problem 1
+```{r message=FALSE}
+acc %>%ggplot(aes(x=DAY_WEEK))+geom_histogram()+xlab("Day of Week")+ylab("number of accidents")
+```
+
+##### Description:  
+Accidents occurred more often in the first, six and seven day of week which are Monday, Saturday and Sunday. As we can see from the graph, the second, third and fourth are less accident than on the weekend.
+
+#### Problem 2
+```{r warning=FALSE, message=FALSE}
+acc%>%ggplot(aes(x=HOUR))+geom_histogram()+xlim(0,24)
+```
+
+##### Description:  
+From the histogram, we can see the most accidents happened between 17 and 21 which are 5 pm to 9pm. People tend to drive home from work or go out for dinner.
+
+#### Problem 3
+```{r}
+temp<-acc%>%filter(DRUNK_DR>=1)
+length(temp)
+```
+
+##### Description:  
+The number of accidents with at least one drunk driver are 52.
+
+### part 2: Connecting Data  
+#### Problem 1
+```{r}
+person_sub<-person%>%filter(PER_TYP==1)
+```
+
+#### Problem 2
+```{r}
+join_data<-inner_join(acc,person,by="ST_CASE")
+join_data<-join_data%>%filter(SEX<3)
+join_data<-join_data%>%filter(HOUR.x<25)
+join_data<-join_data%>%mutate(SEX=as.factor(SEX),DAY_WEEK=as.factor(DAY_WEEK))
+levels(join_data$SEX)<-c("Male","female")
+levels(join_data$DAY_WEEK)<-c("Mon","Tues","Wed","Thrus","Fri","Sat","Sun")
+str(join_data)
+
+#temp<-join_data%>%group_by(DAY_WEEK,HOUR.x,SEX)
+join_data%>%ggplot(aes(x=HOUR.x,color=SEX))+geom_histogram()+facet_grid(~DAY_WEEK)
+
+glcs <-readxl::read_xlsx("FRPP GLC - United StatesFeb132020.xlsx")
+str(glcs)
+
+
+```
+
